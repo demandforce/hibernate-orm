@@ -110,6 +110,9 @@ subprojects { subProject ->
 
 	apply from: "${rootProject.projectDir}/source-generation.gradle"
 
+	tasks.withType(FindBugs) {
+		maxHeapSize = '1024m'
+}	
 	apply plugin: 'findbugs'
 	apply plugin: 'checkstyle'
 	apply plugin: 'build-dashboard'
