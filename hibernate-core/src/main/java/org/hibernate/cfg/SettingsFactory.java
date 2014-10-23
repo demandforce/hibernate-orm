@@ -24,6 +24,7 @@
 package org.hibernate.cfg;
 
 import java.io.Serializable;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Properties;
 
@@ -56,7 +57,6 @@ import org.hibernate.internal.util.config.ConfigurationHelper;
 import org.hibernate.loader.BatchFetchStyle;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.tuple.entity.EntityTuplizerFactory;
-
 import org.jboss.logging.Logger;
 
 /**
@@ -174,7 +174,7 @@ public class SettingsFactory implements Serializable {
 		}
 		settings.setJdbcFetchSize(statementFetchSize);
 
-		MultiTenancyStrategy multiTenancyStrategy = MultiTenancyStrategy.determineMultiTenancyStrategy( properties );
+		EnumSet<MultiTenancyStrategy> multiTenancyStrategy = MultiTenancyStrategy.determineMultiTenancyStrategy( properties );
 		if ( debugEnabled ) {
 			LOG.debugf( "multi-tenancy strategy : %s", multiTenancyStrategy );
 		}
@@ -192,7 +192,7 @@ public class SettingsFactory implements Serializable {
 			releaseMode = ConnectionReleaseMode.parse( releaseModeName );
 			if ( releaseMode == ConnectionReleaseMode.AFTER_STATEMENT ) {
 				// we need to make sure the underlying JDBC connection access supports aggressive release...
-				boolean supportsAgrressiveRelease = multiTenancyStrategy.requiresMultiTenantConnectionProvider()
+				boolean supportsAgrressiveRelease = MultiTenancyStrategy.requiresMultiTenantConnectionProvider(multiTenancyStrategy)
 						? serviceRegistry.getService( MultiTenantConnectionProvider.class ).supportsAggressiveRelease()
 						: serviceRegistry.getService( ConnectionProvider.class ).supportsAggressiveRelease();
 				if ( ! supportsAgrressiveRelease ) {

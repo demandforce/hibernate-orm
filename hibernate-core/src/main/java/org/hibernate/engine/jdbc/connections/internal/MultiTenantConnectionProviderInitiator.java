@@ -23,6 +23,7 @@
  */
 package org.hibernate.engine.jdbc.connections.internal;
 
+import java.util.EnumSet;
 import java.util.Map;
 
 import org.hibernate.MultiTenancyStrategy;
@@ -34,7 +35,6 @@ import org.hibernate.engine.jdbc.connections.spi.DataSourceBasedMultiTenantConne
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
 import org.hibernate.service.spi.ServiceException;
 import org.hibernate.service.spi.ServiceRegistryImplementor;
-
 import org.jboss.logging.Logger;
 
 /**
@@ -58,8 +58,8 @@ public class MultiTenantConnectionProviderInitiator implements StandardServiceIn
 	@Override
 	@SuppressWarnings( {"unchecked"})
 	public MultiTenantConnectionProvider initiateService(Map configurationValues, ServiceRegistryImplementor registry) {
-		final MultiTenancyStrategy strategy = MultiTenancyStrategy.determineMultiTenancyStrategy(  configurationValues );
-		if ( strategy == MultiTenancyStrategy.NONE || strategy == MultiTenancyStrategy.DISCRIMINATOR ) {
+		final EnumSet<MultiTenancyStrategy> strategy = MultiTenancyStrategy.determineMultiTenancyStrategy(  configurationValues );
+		if ( !MultiTenancyStrategy.requiresMultiTenantConnectionProvider( strategy ) ) {
 			// nothing to do, but given the separate hierarchies have to handle this here.
 			return null;
 		}

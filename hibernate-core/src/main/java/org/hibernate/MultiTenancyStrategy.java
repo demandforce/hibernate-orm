@@ -23,11 +23,11 @@
  */
 package org.hibernate;
 
+import java.util.EnumSet;
 import java.util.Map;
 
 import org.hibernate.cfg.Environment;
 import org.hibernate.internal.CoreMessageLogger;
-
 import org.jboss.logging.Logger;
 
 /**
@@ -69,6 +69,14 @@ public enum MultiTenancyStrategy {
 		return this == DATABASE || this == SCHEMA;
 	}
 
+	public static boolean enabled(EnumSet<MultiTenancyStrategy> enabledStrategies) {
+		return !enabledStrategies.contains(NONE);
+	}
+
+	public static boolean requiresMultiTenantConnectionProvider(EnumSet<MultiTenancyStrategy> enabledStrategies) {
+		return enabledStrategies.contains(DATABASE) || enabledStrategies.contains(SCHEMA);
+	}
+
 	/**
 	 * Extract the MultiTenancyStrategy from the setting map.
 	 *
@@ -76,23 +84,35 @@ public enum MultiTenancyStrategy {
 	 *
 	 * @return The selected strategy.  {@link #NONE} is always the default.
 	 */
-	public static MultiTenancyStrategy determineMultiTenancyStrategy(Map properties) {
+	public static EnumSet<MultiTenancyStrategy> determineMultiTenancyStrategy(Map properties) {
 		final Object strategy = properties.get( Environment.MULTI_TENANT );
 		if ( strategy == null ) {
-			return MultiTenancyStrategy.NONE;
+			return EnumSet.of(MultiTenancyStrategy.NONE);
 		}
 
 		if ( MultiTenancyStrategy.class.isInstance( strategy ) ) {
-			return (MultiTenancyStrategy) strategy;
+			return EnumSet.of((MultiTenancyStrategy) strategy);
 		}
 
 		final String strategyName = strategy.toString();
 		try {
-			return MultiTenancyStrategy.valueOf( strategyName.toUpperCase() );
+			return EnumSet.of(MultiTenancyStrategy.valueOf( strategyName.toUpperCase() ));
 		}
 		catch ( RuntimeException e ) {
-			LOG.warn( "Unknown multi tenancy strategy [ " +strategyName +" ], using MultiTenancyStrategy.NONE." );
-			return MultiTenancyStrategy.NONE;
+			try {
+				EnumSet<MultiTenancyStrategy> strategySet = EnumSet.noneOf(MultiTenancyStrategy.class);
+				String[] split = strategyName.toUpperCase().split(",");
+				for (int i = 0; i < split.length; i++) {
+					strategySet.add(MultiTenancyStrategy.valueOf(split[i]));
+				}
+				if (strategySet.size() == 0 || (strategySet.size() > 1 && strategySet.contains(NONE)) ) {
+					EnumSet.of(MultiTenancyStrategy.NONE);
+				}
+				return strategySet;
+			} catch ( RuntimeException e2 ) {
+				LOG.warn( "Unknown multi tenancy strategy [ " +strategyName +" ], using MultiTenancyStrategy.NONE." );
+				return EnumSet.of(MultiTenancyStrategy.NONE);
+			}
 		}
 	}
 }

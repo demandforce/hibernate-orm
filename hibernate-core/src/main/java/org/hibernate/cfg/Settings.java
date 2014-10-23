@@ -23,6 +23,7 @@
  */
 package org.hibernate.cfg;
 
+import java.util.EnumSet;
 import java.util.Map;
 
 import org.hibernate.ConnectionReleaseMode;
@@ -90,7 +91,7 @@ public final class Settings {
 //	private ComponentTuplizerFactory componentTuplizerFactory; todo : HHH-3517 and HHH-1907
 //	private BytecodeProvider bytecodeProvider;
 	private String importFiles;
-	private MultiTenancyStrategy multiTenancyStrategy;
+	private EnumSet<MultiTenancyStrategy> multiTenancyStrategy;
 
 	private JtaPlatform jtaPlatform;
 
@@ -473,11 +474,11 @@ public final class Settings {
 		this.jtaPlatform = jtaPlatform;
 	}
 
-	public MultiTenancyStrategy getMultiTenancyStrategy() {
+	public EnumSet<MultiTenancyStrategy> getMultiTenancyStrategy() {
 		return multiTenancyStrategy;
 	}
 
-	void setMultiTenancyStrategy(MultiTenancyStrategy multiTenancyStrategy) {
+	void setMultiTenancyStrategy(EnumSet<MultiTenancyStrategy> multiTenancyStrategy) {
 		this.multiTenancyStrategy = multiTenancyStrategy;
 	}
 

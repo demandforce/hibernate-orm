@@ -29,6 +29,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -254,9 +255,9 @@ public class JdbcServicesImpl implements JdbcServices, ServiceRegistryAwareServi
 	}
 
 	private JdbcConnectionAccess buildJdbcConnectionAccess(Map configValues) {
-		final MultiTenancyStrategy multiTenancyStrategy = MultiTenancyStrategy.determineMultiTenancyStrategy( configValues );
+		final EnumSet<MultiTenancyStrategy> multiTenancyStrategy = MultiTenancyStrategy.determineMultiTenancyStrategy( configValues );
 
-		if ( MultiTenancyStrategy.NONE == multiTenancyStrategy ) {
+		if ( !MultiTenancyStrategy.enabled( multiTenancyStrategy ) ) {
 			connectionProvider = serviceRegistry.getService( ConnectionProvider.class );
 			return new ConnectionProviderJdbcConnectionAccess( connectionProvider );
 		}
