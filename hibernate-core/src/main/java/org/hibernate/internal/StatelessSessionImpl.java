@@ -58,6 +58,7 @@ import org.hibernate.engine.spi.EntityKey;
 import org.hibernate.engine.spi.LoadQueryInfluencers;
 import org.hibernate.engine.spi.PersistenceContext;
 import org.hibernate.engine.spi.QueryParameters;
+import org.hibernate.engine.spi.ResolvedTenant;
 import org.hibernate.engine.spi.SessionEventListenerManager;
 import org.hibernate.engine.transaction.internal.TransactionCoordinatorImpl;
 import org.hibernate.engine.transaction.spi.TransactionCoordinator;
@@ -72,7 +73,6 @@ import org.hibernate.persister.entity.OuterJoinLoadable;
 import org.hibernate.pretty.MessageHelper;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.type.Type;
-
 import org.jboss.logging.Logger;
 
 /**
@@ -88,17 +88,17 @@ public class StatelessSessionImpl extends AbstractSessionImpl implements Statele
 	
 	StatelessSessionImpl(
 			Connection connection,
-			String tenantIdentifier,
+			ResolvedTenant resolvedTenant,
 			SessionFactoryImpl factory) {
-		this( connection, tenantIdentifier, factory, factory.getSettings().getRegionFactory().nextTimestamp() );
+		this( connection, resolvedTenant, factory, factory.getSettings().getRegionFactory().nextTimestamp() );
 	}
 
 	StatelessSessionImpl(
 			Connection connection,
-			String tenantIdentifier,
+			ResolvedTenant resolvedTenant,
 			SessionFactoryImpl factory,
 			long timestamp) {
-		super( factory, tenantIdentifier );
+		super( factory, resolvedTenant );
 		this.transactionCoordinator = new TransactionCoordinatorImpl( connection, this );
 		this.timestamp = timestamp;
 	}

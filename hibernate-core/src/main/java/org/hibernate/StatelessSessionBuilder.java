@@ -23,7 +23,10 @@
  */
 package org.hibernate;
 
+import java.io.Serializable;
 import java.sql.Connection;
+
+import org.hibernate.engine.spi.ResolvedTenant;
 
 /**
  * Represents a consolidation of all stateless session creation options into a builder style delegate.
@@ -55,4 +58,6 @@ public interface StatelessSessionBuilder {
 	 * @return {@code this}, for method chaining
 	 */
 	public StatelessSessionBuilder tenantIdentifier(String tenantIdentifier);
+	public StatelessSessionBuilder resolvedTenant(ResolvedTenant resolvedTenant);
+
 }
