@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+
 import javax.persistence.Access;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -66,6 +67,7 @@ import org.hibernate.annotations.SelectBeforeUpdate;
 import org.hibernate.annotations.Subselect;
 import org.hibernate.annotations.Synchronize;
 import org.hibernate.annotations.Tables;
+import org.hibernate.annotations.TenantDiscriminator;
 import org.hibernate.annotations.Tuplizer;
 import org.hibernate.annotations.Tuplizers;
 import org.hibernate.annotations.Where;
@@ -96,7 +98,6 @@ import org.hibernate.mapping.SimpleValue;
 import org.hibernate.mapping.Table;
 import org.hibernate.mapping.TableOwner;
 import org.hibernate.mapping.Value;
-
 import org.jboss.logging.Logger;
 
 import static org.hibernate.cfg.BinderHelper.toAliasEntityMap;
@@ -393,6 +394,13 @@ public class EntityBinder {
 			}
 			persistentClass.addFilter(filterName, cond, filter.deduceAliasInjectionPoints(), 
 					toAliasTableMap(filter.aliases()), toAliasEntityMap(filter.aliases()));
+		}
+		if ( annotatedClass.isAnnotationPresent( TenantDiscriminator.class ) ) {
+			TenantDiscriminator tenantDiscriminator = annotatedClass.getAnnotation( TenantDiscriminator.class );
+			persistentClass.setTenantShared(tenantDiscriminator.shared());
+			if (tenantDiscriminator.column() != null) {
+				persistentClass.setTenantDiscriminatorColumnName(tenantDiscriminator.column());
+			}
 		}
 		LOG.debugf( "Import with entity name %s", name );
 		try {

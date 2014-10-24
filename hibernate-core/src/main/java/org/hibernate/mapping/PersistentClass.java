@@ -108,6 +108,9 @@ public abstract class PersistentClass implements Serializable, Filterable, MetaA
 	private Component declaredIdentifierMapper;
 	private OptimisticLockStyle optimisticLockStyle;
 
+	private boolean tenantShared;
+	private String tenantDiscriminatorColumnName;
+
 	public String getClassName() {
 		return className;
 	}
@@ -889,6 +892,22 @@ public abstract class PersistentClass implements Serializable, Filterable, MetaA
 
 	public void setSuperMappedSuperclass(MappedSuperclass superMappedSuperclass) {
 		this.superMappedSuperclass = superMappedSuperclass;
+	}
+
+	public boolean isTenantShared() {
+		return tenantShared;
+	}
+
+	public void setTenantShared(boolean tenantShared) {
+		this.tenantShared = tenantShared;
+	}
+
+	public String getTenantDiscriminatorColumnName() {
+		return tenantDiscriminatorColumnName;
+	}
+
+	public void setTenantDiscriminatorColumnName(String tenantDiscriminatorColumnName) {
+		this.tenantDiscriminatorColumnName = tenantDiscriminatorColumnName;
 	}
 
 	// End of @Mappedsuperclass support

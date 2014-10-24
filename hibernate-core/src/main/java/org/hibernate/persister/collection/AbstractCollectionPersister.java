@@ -108,7 +108,6 @@ import org.hibernate.type.CollectionType;
 import org.hibernate.type.CompositeType;
 import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
-
 import org.jboss.logging.Logger;
 
 /**
@@ -185,6 +184,7 @@ public abstract class AbstractCollectionPersister
 	protected final String identifierColumnName;
 	private final String identifierColumnAlias;
 	// private final String unquotedIdentifierColumnName;
+	private final String tenantDiscriminatorColumnName;
 
 	protected final String qualifiedTableName;
 
@@ -330,6 +330,9 @@ public abstract class AbstractCollectionPersister
 
 		// unquotedKeyColumnNames = StringHelper.unQuote(keyColumnAliases);
 
+		// TODO collection tenant
+		tenantDiscriminatorColumnName = null;
+		
 		// ELEMENT
 
 		String elemNode = collection.getElementNodeName();
@@ -1000,6 +1003,10 @@ public abstract class AbstractCollectionPersister
 		else {
 			return null;
 		}
+	}
+
+	public String getTenantDiscriminatorColumnName() {
+		return tenantDiscriminatorColumnName;
 	}
 
 	/**

@@ -42,6 +42,7 @@ public @interface TenantDiscriminator {
 
 	boolean shared() default false;
 
-	String tenantDiscriminatorColumn();
+	String column();
 
+	boolean useParameterBinding() default true;
 }
