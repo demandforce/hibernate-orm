@@ -471,6 +471,7 @@ public interface EntityPersister extends OptimisticCacheSource, EntityDefinition
 	 * name of an actual Java property
 	 */
 	public String getIdentifierPropertyName();
+	public String getTenantDiscriminatorColumnName();
 
 	/**
 	 * Should we always invalidate the cache instead of

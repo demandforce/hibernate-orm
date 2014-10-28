@@ -2901,7 +2901,7 @@ public abstract class AbstractEntityPersister
 			final PreparedStatement ps,
 			final SessionImplementor session,
 			final int index) throws SQLException {
-		if (session.getTenantDiscriminator() != null) {
+		if (getTenantDiscriminatorColumnName() != null && session.getTenantDiscriminator() != null) {
 			ps.setObject(index, session.getTenantDiscriminator());
 			return 1;
 		} else if (getTenantDiscriminatorColumnName() != null) {

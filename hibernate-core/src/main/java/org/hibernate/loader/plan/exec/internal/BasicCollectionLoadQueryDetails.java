@@ -104,4 +104,10 @@ public class BasicCollectionLoadQueryDetails extends AbstractCollectionLoadQuery
 		super.applyRootReturnOrderByFragments( selectStatementBuilder );
 	}
 
+	@Override
+	protected void applyRootReturnTenantDiscriminatorRestrictions(SelectStatementBuilder selectStatementBuilder) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

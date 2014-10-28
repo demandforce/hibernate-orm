@@ -377,6 +377,11 @@ public class GoofyPersisterClassProvider implements PersisterClassResolver {
 		}
 
 		@Override
+		public String getTenantDiscriminatorColumnName() {
+			return null;
+		}
+
+		@Override
 		public boolean isCacheInvalidationRequired() {
 			return false;
 		}

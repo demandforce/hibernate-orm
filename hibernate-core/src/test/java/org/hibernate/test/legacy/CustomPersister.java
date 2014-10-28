@@ -448,6 +448,10 @@ public class CustomPersister implements EntityPersister {
 		return "id";
 	}
 
+	public String getTenantDiscriminatorColumnName() {
+		return null;
+	}
+
 	public boolean hasCache() {
 		return false;
 	}

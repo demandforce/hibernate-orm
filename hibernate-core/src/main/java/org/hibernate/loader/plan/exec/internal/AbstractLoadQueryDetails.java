@@ -211,6 +211,7 @@ public abstract class AbstractLoadQueryDetails implements LoadQueryDetails {
 	protected abstract void applyRootReturnTableFragments(SelectStatementBuilder selectStatementBuilder);
 	protected abstract void applyRootReturnFilterRestrictions(SelectStatementBuilder selectStatementBuilder);
 	protected abstract void applyRootReturnWhereJoinRestrictions(SelectStatementBuilder selectStatementBuilder);
+	protected abstract void applyRootReturnTenantDiscriminatorRestrictions(SelectStatementBuilder selectStatementBuilder);
 	protected abstract void applyRootReturnOrderByFragments(SelectStatementBuilder selectStatementBuilder);
 
 
@@ -249,6 +250,15 @@ public abstract class AbstractLoadQueryDetails implements LoadQueryDetails {
 				restrictions.append( ')' );
 			}
 			select.appendRestrictions( restrictions.toString() );
+		}
+	}
+
+	protected void applyTenantDiscriminatorRestriction( SelectStatementBuilder select, String tenantDiscriminatorColumnNames) {
+		if (tenantDiscriminatorColumnNames != null) {
+			final ConditionFragment keyRestrictionBuilder = new ConditionFragment()
+				.setTableAlias( getRootTableAlias() )
+				.setCondition( new String[] { tenantDiscriminatorColumnNames } , "?" );
+			select.appendRestrictions(keyRestrictionBuilder.toFragmentString());
 		}
 	}
 
