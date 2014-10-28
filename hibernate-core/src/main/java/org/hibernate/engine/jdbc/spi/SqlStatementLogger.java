@@ -107,6 +107,9 @@ public class SqlStatementLogger {
 			}
 		}
 		LOG.debug( statement );
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("", new Exception());
+		}
 		if ( logToStdout ) {
 			System.out.println( "Hibernate: " + statement );
 		}
