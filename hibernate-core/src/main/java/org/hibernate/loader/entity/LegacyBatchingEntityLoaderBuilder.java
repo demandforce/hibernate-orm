@@ -109,6 +109,7 @@ public class LegacyBatchingEntityLoaderBuilder extends BatchingEntityLoaderBuild
 							session,
 							smallBatch,
 							persister().getIdentifierType(),
+							persister().getTenantDiscriminatorType(),
 							optionalObject,
 							persister().getEntityName(),
 							id,

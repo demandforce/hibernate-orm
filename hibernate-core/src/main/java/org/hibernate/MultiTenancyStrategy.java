@@ -27,6 +27,7 @@ import java.util.EnumSet;
 import java.util.Map;
 
 import org.hibernate.cfg.Environment;
+import org.hibernate.engine.spi.ResolvedTenant;
 import org.hibernate.internal.CoreMessageLogger;
 import org.jboss.logging.Logger;
 
@@ -114,5 +115,12 @@ public enum MultiTenancyStrategy {
 				return EnumSet.of(MultiTenancyStrategy.NONE);
 			}
 		}
+	}
+
+	public static boolean supportsMultiTenantConnectionProvider(ResolvedTenant resolvedTenant) {
+		if (resolvedTenant != null && resolvedTenant.getTenantIdentifier() != null) {
+			return true;
+		}
+		return false;
 	}
 }

@@ -43,6 +43,7 @@ import org.hibernate.internal.util.collections.EmptyIterator;
 import org.hibernate.internal.util.collections.JoinedIterator;
 import org.hibernate.internal.util.collections.SingletonIterator;
 import org.hibernate.sql.Alias;
+import org.hibernate.type.Type;
 
 /**
  * Mapping for an entity.
@@ -110,6 +111,7 @@ public abstract class PersistentClass implements Serializable, Filterable, MetaA
 
 	private boolean tenantShared;
 	private String tenantDiscriminatorColumnName;
+	private Type tenantDiscriminatorType;
 
 	public String getClassName() {
 		return className;
@@ -908,6 +910,14 @@ public abstract class PersistentClass implements Serializable, Filterable, MetaA
 
 	public void setTenantDiscriminatorColumnName(String tenantDiscriminatorColumnName) {
 		this.tenantDiscriminatorColumnName = tenantDiscriminatorColumnName;
+	}
+
+	public Type getTenantDiscriminatorType() {
+		return tenantDiscriminatorType;
+	}
+
+	public void setTenantDiscriminatorType(Type tenantDiscriminatorType) {
+		this.tenantDiscriminatorType = tenantDiscriminatorType;
 	}
 
 	// End of @Mappedsuperclass support

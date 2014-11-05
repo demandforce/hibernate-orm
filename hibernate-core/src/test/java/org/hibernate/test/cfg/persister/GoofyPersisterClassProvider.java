@@ -382,6 +382,11 @@ public class GoofyPersisterClassProvider implements PersisterClassResolver {
 		}
 
 		@Override
+		public Type getTenantDiscriminatorType() {
+			return null;
+		}
+
+		@Override
 		public boolean isCacheInvalidationRequired() {
 			return false;
 		}
@@ -878,6 +883,12 @@ public class GoofyPersisterClassProvider implements PersisterClassResolver {
 		@Override
 		public void processQueuedOps(PersistentCollection collection, Serializable key, SessionImplementor session)
 				throws HibernateException {
+		}
+
+		@Override
+		public String getTenantDiscriminatorColumnName() {
+			// TODO Auto-generated method stub
+			return null;
 		}
 	}
 }

@@ -44,5 +44,7 @@ public @interface TenantDiscriminator {
 
 	String column();
 
+	String type() default "int";
+
 	boolean useParameterBinding() default true;
 }

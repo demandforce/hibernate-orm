@@ -43,6 +43,7 @@ public abstract class AbstractEntityLoader extends OuterJoinLoader
 
 	protected final OuterJoinLoadable persister;
 	protected final Type uniqueKeyType;
+	protected final Type tenantDiscriminatorType;
 	protected final String entityName;
 
 	public AbstractEntityLoader(
@@ -52,6 +53,7 @@ public abstract class AbstractEntityLoader extends OuterJoinLoader
 			LoadQueryInfluencers loadQueryInfluencers) {
 		super( factory, loadQueryInfluencers );
 		this.uniqueKeyType = uniqueKeyType;
+		this.tenantDiscriminatorType = persister.getTenantDiscriminatorType();
 		this.entityName = persister.getEntityName();
 		this.persister = persister;
 
@@ -79,6 +81,7 @@ public abstract class AbstractEntityLoader extends OuterJoinLoader
 				session,
 				id,
 				uniqueKeyType,
+				tenantDiscriminatorType,
 				optionalObject,
 				entityName,
 				optionalId,

@@ -452,6 +452,10 @@ public class CustomPersister implements EntityPersister {
 		return null;
 	}
 
+	public Type getTenantDiscriminatorType() {
+		return null;
+	}
+
 	public boolean hasCache() {
 		return false;
 	}
@@ -708,4 +712,5 @@ public class CustomPersister implements EntityPersister {
 	public boolean canUseReferenceCacheEntries() {
 		return false;  //To change body of implemented methods use File | Settings | File Templates.
 	}
+
 }

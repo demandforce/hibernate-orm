@@ -312,7 +312,8 @@ public interface CollectionPersister extends CollectionDefinition {
 	 * @return The key column aliases.
 	 */
 	public String getIdentifierColumnAlias(String suffix);
-	
+	public String getTenantDiscriminatorColumnName();
+
 	public boolean isExtraLazy();
 	public int getSize(Serializable key, SessionImplementor session);
 	public boolean indexExists(Serializable key, Object index, SessionImplementor session);

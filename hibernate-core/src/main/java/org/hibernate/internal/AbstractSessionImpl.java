@@ -79,13 +79,14 @@ public abstract class AbstractSessionImpl
 	protected AbstractSessionImpl(SessionFactoryImpl factory, ResolvedTenant resolvedTenant) {
 		this.factory = factory;
 		this.resolvedTenant = resolvedTenant;
-		if ( !MultiTenancyStrategy.enabled( factory.getSettings().getMultiTenancyStrategy() ) ) {
-			if ( resolvedTenant != null ) {
-				throw new HibernateException( "SessionFactory was not configured for multi-tenancy" );
+		if ( !MultiTenancyStrategy.requiresMultiTenantConnectionProvider( factory.getSettings().getMultiTenancyStrategy() ) ) {
+			if ( MultiTenancyStrategy.supportsMultiTenantConnectionProvider(resolvedTenant) ) {
+				// TODO Mutitenant resolver needs to be keyed by session factory name
+				// throw new HibernateException( "SessionFactory was not configured for multi-tenancy" );
 			}
 		}
 		else {
-			if ( resolvedTenant == null ) {
+			if ( !MultiTenancyStrategy.supportsMultiTenantConnectionProvider(resolvedTenant) ) {
 				throw new HibernateException( "SessionFactory configured for multi-tenancy, but no tenant identifier specified" );
 			}
 		}
@@ -343,7 +344,7 @@ public abstract class AbstractSessionImpl
 	@Override
 	public JdbcConnectionAccess getJdbcConnectionAccess() {
 		if ( jdbcConnectionAccess == null ) {
-			if ( !MultiTenancyStrategy.enabled( factory.getSettings().getMultiTenancyStrategy() ) ) {
+			if ( !MultiTenancyStrategy.requiresMultiTenantConnectionProvider( factory.getSettings().getMultiTenancyStrategy() ) ) {
 				jdbcConnectionAccess = new NonContextualJdbcConnectionAccess(
 						getEventListenerManager(),
 						factory.getServiceRegistry().getService( ConnectionProvider.class )

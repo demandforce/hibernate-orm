@@ -34,6 +34,7 @@ import java.util.StringTokenizer;
 
 import org.hibernate.dialect.Dialect;
 import org.hibernate.internal.util.collections.ArrayHelper;
+import org.hibernate.sql.InFragment;
 
 public final class StringHelper {
 
@@ -709,18 +710,19 @@ public final class StringHelper {
 	public static StringBuilder buildBatchFetchRestrictionFragment(
 			String alias,
 			String[] columnNames,
+			String tenantDiscriminatorColumnName,
 			Dialect dialect) {
+		StringBuilder builder = new StringBuilder();
 		// the general idea here is to just insert a placeholder that we can easily find later...
 		if ( columnNames.length == 1 ) {
 			// non-composite key
-			return new StringBuilder( StringHelper.qualify( alias, columnNames[0] ) )
+			builder.append( StringHelper.qualify( alias, columnNames[0] ) )
 					.append( " in (" ).append( BATCH_ID_PLACEHOLDER ).append( ")" );
 		}
 		else {
 			// composite key - the form to use here depends on what the dialect supports.
 			if ( dialect.supportsRowValueConstructorSyntaxInInList() ) {
 				// use : (col1, col2) in ( (?,?), (?,?), ... )
-				StringBuilder builder = new StringBuilder();
 				builder.append( "(" );
 				boolean firstPass = true;
 				String deliminator = "";
@@ -734,15 +736,19 @@ public final class StringHelper {
 				builder.append( ") in (" );
 				builder.append( BATCH_ID_PLACEHOLDER );
 				builder.append( ")" );
-				return builder;
 			}
 			else {
 				// use : ( (col1 = ? and col2 = ?) or (col1 = ? and col2 = ?) or ... )
 				//		unfortunately most of this building needs to be held off until we know
 				//		the exact number of ids :(
-				return new StringBuilder( "(" ).append( BATCH_ID_PLACEHOLDER ).append( ")" );
+				builder.append( "(" ).append( BATCH_ID_PLACEHOLDER ).append( ")" );
 			}
 		}
+		if (tenantDiscriminatorColumnName != null) {
+			builder.append(" and ")
+				.append( new InFragment().setColumn( alias, tenantDiscriminatorColumnName ).addValue("?").toFragmentString() );
+		}
+		return builder;
 	}
 
 	public static String expandBatchIdPlaceholder(

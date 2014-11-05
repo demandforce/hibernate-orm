@@ -257,7 +257,7 @@ public class JdbcServicesImpl implements JdbcServices, ServiceRegistryAwareServi
 	private JdbcConnectionAccess buildJdbcConnectionAccess(Map configValues) {
 		final EnumSet<MultiTenancyStrategy> multiTenancyStrategy = MultiTenancyStrategy.determineMultiTenancyStrategy( configValues );
 
-		if ( !MultiTenancyStrategy.enabled( multiTenancyStrategy ) ) {
+		if ( !MultiTenancyStrategy.requiresMultiTenantConnectionProvider( multiTenancyStrategy ) ) {
 			connectionProvider = serviceRegistry.getService( ConnectionProvider.class );
 			return new ConnectionProviderJdbcConnectionAccess( connectionProvider );
 		}

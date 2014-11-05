@@ -287,6 +287,7 @@ public abstract class AbstractEntityPersister
 	protected final BasicEntityPropertyMapping propertyMapping;
 
 	private final String tenantDiscriminatorColumnName;
+	private final Type tenantDiscriminatorType;
 
 	protected void addDiscriminatorToInsert(Insert insert) {}
 
@@ -565,6 +566,7 @@ public abstract class AbstractEntityPersister
 		}
 
 		tenantDiscriminatorColumnName = persistentClass.getTenantDiscriminatorColumnName();
+		tenantDiscriminatorType = persistentClass.getTenantDiscriminatorType();
 
 		//WHERE STRING
 
@@ -905,6 +907,7 @@ public abstract class AbstractEntityPersister
 
 		// TODO hbm binding
 		tenantDiscriminatorColumnName = null;
+		tenantDiscriminatorType = null;
 
 		//WHERE STRING
 
@@ -5371,6 +5374,10 @@ public abstract class AbstractEntityPersister
 
 	public String getTenantDiscriminatorColumnName() {
 		return tenantDiscriminatorColumnName;
+	}
+
+	public Type getTenantDiscriminatorType() {
+		return tenantDiscriminatorType;
 	}
 
 	private void prepareEntityIdentifierDefinition() {

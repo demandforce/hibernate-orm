@@ -400,6 +400,7 @@ public class EntityBinder {
 			persistentClass.setTenantShared(tenantDiscriminator.shared());
 			if (tenantDiscriminator.column() != null) {
 				persistentClass.setTenantDiscriminatorColumnName(tenantDiscriminator.column());
+				persistentClass.setTenantDiscriminatorType(mappings.getTypeResolver().basic(tenantDiscriminator.type()));
 			}
 		}
 		LOG.debugf( "Import with entity name %s", name );
