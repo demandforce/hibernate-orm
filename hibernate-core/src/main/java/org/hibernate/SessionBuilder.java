@@ -25,6 +25,8 @@ package org.hibernate;
 
 import java.sql.Connection;
 
+import org.hibernate.engine.spi.ResolvedTenant;
+
 /**
  * Represents a consolidation of all session creation options into a builder style delegate.
  * 
@@ -117,6 +119,7 @@ public interface SessionBuilder {
 	 * @return {@code this}, for method chaining
 	 */
 	public SessionBuilder tenantIdentifier(String tenantIdentifier);
+	public SessionBuilder resolvedTenant(ResolvedTenant resolvedTenant);
 
 	/**
 	 * Apply one or more SessionEventListener instances to the listeners for the Session to be built.

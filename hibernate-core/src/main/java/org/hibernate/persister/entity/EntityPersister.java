@@ -472,6 +472,9 @@ public interface EntityPersister extends OptimisticCacheSource, EntityDefinition
 	 */
 	public String getIdentifierPropertyName();
 
+	public Type getTenantDiscriminatorType();
+	public String getTenantDiscriminatorColumnName();
+
 	/**
 	 * Should we always invalidate the cache instead of
 	 * recaching updated state

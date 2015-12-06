@@ -52,10 +52,12 @@ public abstract class AbstractCurrentSessionContext implements CurrentSessionCon
 
 	protected SessionBuilder baseSessionBuilder() {
 		final SessionBuilder builder = factory.withOptions();
+		/* Why is this here
 		final CurrentTenantIdentifierResolver resolver = factory.getCurrentTenantIdentifierResolver();
 		if ( resolver != null ) {
 			builder.tenantIdentifier( resolver.resolveCurrentTenantIdentifier() );
 		}
+		*/
 		return builder;
 	}
 

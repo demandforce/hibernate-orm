@@ -63,6 +63,7 @@ public interface SessionImplementor extends Serializable, LobCreationContext {
 	 * @return The tenant identifier of this session
 	 */
 	public String getTenantIdentifier();
+	Serializable getTenantDiscriminator();
 
 	/**
 	 * Provides access to JDBC connections
@@ -421,4 +422,5 @@ public interface SessionImplementor extends Serializable, LobCreationContext {
 	SQLQuery createSQLQuery(NamedSQLQueryDefinition namedQueryDefinition);
 
 	public SessionEventListenerManager getEventListenerManager();
+
 }

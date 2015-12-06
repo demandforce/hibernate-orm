@@ -161,6 +161,14 @@
         <jaxb:bindings node="//xsd:complexType[@name='union-subclass-element']//xsd:attribute[@name='subselect']">
             <jaxb:property name="subselectAttribute"/>
         </jaxb:bindings> 
+
+        <jaxb:bindings node="//xsd:element[@name='tenant-discriminator']//xsd:attribute[@name='column']">
+            <jaxb:property name="columnAttribute"/>
+        </jaxb:bindings>
+        <!-- jaxb:bindings node="//xsd:element[@name='tenant-discriminator']//xsd:attribute[@name='formula']">
+            <jaxb:property name="formulaAttribute"/>
+        </jaxb:bindings -->
+
     </jaxb:bindings>
 
 </jaxb:bindings>

@@ -51,6 +51,7 @@ import org.hibernate.engine.spi.EntityKey;
 import org.hibernate.engine.spi.NamedQueryDefinition;
 import org.hibernate.engine.spi.NamedSQLQueryDefinition;
 import org.hibernate.engine.spi.QueryParameters;
+import org.hibernate.engine.spi.ResolvedTenant;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.engine.transaction.spi.TransactionContext;
@@ -72,19 +73,20 @@ import org.hibernate.type.Type;
 public abstract class AbstractSessionImpl
 		implements Serializable, SharedSessionContract, SessionImplementor, TransactionContext {
 	protected transient SessionFactoryImpl factory;
-	private final String tenantIdentifier;
+	private final ResolvedTenant resolvedTenant;
 	private boolean closed;
 
-	protected AbstractSessionImpl(SessionFactoryImpl factory, String tenantIdentifier) {
+	protected AbstractSessionImpl(SessionFactoryImpl factory, ResolvedTenant resolvedTenant) {
 		this.factory = factory;
-		this.tenantIdentifier = tenantIdentifier;
-		if ( MultiTenancyStrategy.NONE == factory.getSettings().getMultiTenancyStrategy() ) {
-			if ( tenantIdentifier != null ) {
-				throw new HibernateException( "SessionFactory was not configured for multi-tenancy" );
+		this.resolvedTenant = resolvedTenant;
+		if ( !MultiTenancyStrategy.requiresMultiTenantConnectionProvider( factory.getSettings().getMultiTenancyStrategy() ) ) {
+			if ( MultiTenancyStrategy.supportsMultiTenantConnectionProvider(resolvedTenant) ) {
+				// TODO Mutitenant resolver needs to be keyed by session factory name
+				// throw new HibernateException( "SessionFactory was not configured for multi-tenancy" );
 			}
 		}
 		else {
-			if ( tenantIdentifier == null ) {
+			if ( !MultiTenancyStrategy.supportsMultiTenantConnectionProvider(resolvedTenant) ) {
 				throw new HibernateException( "SessionFactory configured for multi-tenancy, but no tenant identifier specified" );
 			}
 		}
@@ -319,7 +321,12 @@ public abstract class AbstractSessionImpl
 
 	@Override
 	public String getTenantIdentifier() {
-		return tenantIdentifier;
+		return resolvedTenant == null ? null : resolvedTenant.getTenantIdentifier();
+	}
+
+	@Override
+	public Serializable getTenantDiscriminator() {
+		return resolvedTenant == null ? null : resolvedTenant.getTenantDiscriminator();
 	}
 
 	@Override
@@ -337,7 +344,7 @@ public abstract class AbstractSessionImpl
 	@Override
 	public JdbcConnectionAccess getJdbcConnectionAccess() {
 		if ( jdbcConnectionAccess == null ) {
-			if ( MultiTenancyStrategy.NONE == factory.getSettings().getMultiTenancyStrategy() ) {
+			if ( !MultiTenancyStrategy.requiresMultiTenantConnectionProvider( factory.getSettings().getMultiTenancyStrategy() ) ) {
 				jdbcConnectionAccess = new NonContextualJdbcConnectionAccess(
 						getEventListenerManager(),
 						factory.getServiceRegistry().getService( ConnectionProvider.class )
@@ -414,13 +421,13 @@ public abstract class AbstractSessionImpl
 
 		@Override
 		public Connection obtainConnection() throws SQLException {
-			if ( tenantIdentifier == null ) {
+			if ( getTenantIdentifier() == null ) {
 				throw new HibernateException( "Tenant identifier required!" );
 			}
 
 			try {
 				listener.jdbcConnectionAcquisitionStart();
-				return connectionProvider.getConnection( tenantIdentifier );
+				return connectionProvider.getConnection( getTenantIdentifier() );
 			}
 			finally {
 				listener.jdbcConnectionAcquisitionEnd();
@@ -429,13 +436,13 @@ public abstract class AbstractSessionImpl
 
 		@Override
 		public void releaseConnection(Connection connection) throws SQLException {
-			if ( tenantIdentifier == null ) {
+			if ( getTenantIdentifier() == null ) {
 				throw new HibernateException( "Tenant identifier required!" );
 			}
 
 			try {
 				listener.jdbcConnectionReleaseStart();
-				connectionProvider.releaseConnection( tenantIdentifier, connection );
+				connectionProvider.releaseConnection( getTenantIdentifier(), connection );
 			}
 			finally {
 				listener.jdbcConnectionReleaseEnd();

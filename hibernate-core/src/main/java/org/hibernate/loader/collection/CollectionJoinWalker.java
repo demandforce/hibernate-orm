@@ -27,6 +27,7 @@ import org.hibernate.engine.spi.LoadQueryInfluencers;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.loader.JoinWalker;
+import org.hibernate.sql.InFragment;
 
 /**
  * Superclass of walkers for collection initializers
@@ -42,9 +43,9 @@ public abstract class CollectionJoinWalker extends JoinWalker {
 		super( factory, loadQueryInfluencers );
 	}
 
-	protected StringBuilder whereString(String alias, String[] columnNames, String subselect, int batchSize) {
+	protected StringBuilder whereString(String alias, String[] columnNames, String tenantDiscriminatorColumnName, String subselect, int batchSize) {
 		if (subselect==null) {
-			return whereString(alias, columnNames, batchSize);
+			return whereString(alias, columnNames, tenantDiscriminatorColumnName, batchSize);
 		}
 		else {
 			StringBuilder buf = new StringBuilder();
@@ -55,6 +56,13 @@ public abstract class CollectionJoinWalker extends JoinWalker {
 				.append('(')
 				.append(subselect) 
 				.append(')');
+			if (tenantDiscriminatorColumnName != null) {
+				buf.append(" and ")
+					.append( 
+						new InFragment().setColumn( alias, 
+							StringHelper.qualify(alias, tenantDiscriminatorColumnName) 
+						).addValue("?").toFragmentString() );
+			}
 			return buf;
 		}
 	}

@@ -93,9 +93,9 @@ import org.hibernate.transform.CacheableResultTransformer;
 import org.hibernate.transform.ResultTransformer;
 import org.hibernate.type.AssociationType;
 import org.hibernate.type.EntityType;
+import org.hibernate.type.SerializableType;
 import org.hibernate.type.Type;
 import org.hibernate.type.VersionType;
-
 import org.jboss.logging.Logger;
 
 /**
@@ -2127,6 +2127,7 @@ public abstract class Loader {
 			final SessionImplementor session,
 			final Object id,
 			final Type identifierType,
+			final Type tenantDiscriminatorType,
 			final Object optionalObject,
 			final String optionalEntityName,
 			final Serializable optionalIdentifier,
@@ -2140,8 +2141,14 @@ public abstract class Loader {
 		List result;
 		try {
 			QueryParameters qp = new QueryParameters();
-			qp.setPositionalParameterTypes( new Type[] { identifierType } );
-			qp.setPositionalParameterValues( new Object[] { id } );
+			if (persister.getTenantDiscriminatorColumnName() == null) {
+				qp.setPositionalParameterTypes( new Type[] { identifierType } );
+				qp.setPositionalParameterValues( new Object[] { id } );
+			}
+			else {
+				qp.setPositionalParameterTypes( new Type[] { identifierType, tenantDiscriminatorType } );
+				qp.setPositionalParameterValues( new Object[] { id , session.getTenantDiscriminator()} );
+			}
 			qp.setOptionalObject( optionalObject );
 			qp.setOptionalEntityName( optionalEntityName );
 			qp.setOptionalId( optionalIdentifier );
@@ -2212,6 +2219,7 @@ public abstract class Loader {
 			final SessionImplementor session,
 			final Serializable[] ids,
 			final Type idType,
+			final Type tenantDiscriminatorType,
 			final Object optionalObject,
 			final String optionalEntityName,
 			final Serializable optionalId,
@@ -2223,11 +2231,18 @@ public abstract class Loader {
 
 		Type[] types = new Type[ids.length];
 		Arrays.fill( types, idType );
+		Serializable[] idsAndTenantId = null;
+		if (persister.getTenantDiscriminatorColumnName() != null) {
+			types = Arrays.copyOf( types, types.length + 1 );
+			types[types.length - 1] = tenantDiscriminatorType;
+			idsAndTenantId = Arrays.copyOf( ids, ids.length + 1 );
+			idsAndTenantId[idsAndTenantId.length - 1] = session.getTenantDiscriminator();
+		}
 		List result;
 		try {
 			QueryParameters qp = new QueryParameters();
 			qp.setPositionalParameterTypes( types );
-			qp.setPositionalParameterValues( ids );
+			qp.setPositionalParameterValues( idsAndTenantId == null ? ids : idsAndTenantId );
 			qp.setOptionalObject( optionalObject );
 			qp.setOptionalEntityName( optionalEntityName );
 			qp.setOptionalId( optionalId );

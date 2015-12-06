@@ -168,8 +168,8 @@ public class DynamicBatchingEntityLoaderBuilder extends BatchingEntityLoaderBuil
 					loadQueryInfluencers
 			) {
 				@Override
-				protected StringBuilder whereString(String alias, String[] columnNames, int batchSize) {
-					return StringHelper.buildBatchFetchRestrictionFragment( alias, columnNames, getFactory().getDialect() );
+				protected StringBuilder whereString(String alias, String[] columnNames, String tenantDiscriminatorColumnName, int batchSize) {
+					return StringHelper.buildBatchFetchRestrictionFragment( alias, columnNames, tenantDiscriminatorColumnName, getFactory().getDialect() );
 				}
 			};
 

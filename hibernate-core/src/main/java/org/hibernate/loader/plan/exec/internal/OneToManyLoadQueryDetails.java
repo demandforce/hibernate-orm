@@ -106,4 +106,10 @@ public class OneToManyLoadQueryDetails extends AbstractCollectionLoadQueryDetail
 		return getAliasResolutionContext().resolveEntityReferenceAliases( getElementEntityReference().getQuerySpaceUid() );
 	}
 
+	@Override
+	protected void applyRootReturnTenantDiscriminatorRestrictions(SelectStatementBuilder selectStatementBuilder) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

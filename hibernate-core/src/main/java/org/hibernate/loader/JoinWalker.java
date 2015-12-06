@@ -965,14 +965,16 @@ public class JoinWalker {
 
 	/**
 	 * Render the where condition for a (batch) load by identifier / collection key
+	 * @param tenantDiscriminatorColumnName 
 	 */
-	protected StringBuilder whereString(String alias, String[] columnNames, int batchSize) {
+	protected StringBuilder whereString(String alias, String[] columnNames, String tenantDiscriminatorColumnName, int batchSize) {
+		StringBuilder whereString = new StringBuilder();
 		if ( columnNames.length==1 ) {
 			// if not a composite key, use "foo in (?, ?, ?)" for batching
 			// if no batch, and not a composite key, use "foo = ?"
 			InFragment in = new InFragment().setColumn( alias, columnNames[0] );
 			for ( int i=0; i<batchSize; i++ ) in.addValue("?");
-			return new StringBuilder( in.toFragmentString() );
+			whereString.append( in.toFragmentString() );
 		}
 		else {
 			//a composite key
@@ -980,7 +982,6 @@ public class JoinWalker {
 					.setTableAlias(alias)
 					.setCondition( columnNames, "?" );
 	
-			StringBuilder whereString = new StringBuilder();
 			if ( batchSize==1 ) {
 				// if no batch, use "foo = ? and bar = ?"
 				whereString.append( byId.toFragmentString() );
@@ -995,8 +996,12 @@ public class JoinWalker {
 				whereString.append( df.toFragmentString() );
 				whereString.append(')'); //TODO: unnecessary for databases with ANSI-style joins
 			}
-			return whereString;
 		}
+		if (tenantDiscriminatorColumnName != null) {
+			whereString.append(" and ")
+				.append( new InFragment().setColumn( alias, tenantDiscriminatorColumnName ).addValue("?").toFragmentString() );
+		}
+		return whereString;
 	}
 
 

@@ -89,7 +89,8 @@ public class BasicCollectionJoinWalker extends CollectionJoinWalker {
 
 		StringBuilder whereString = whereString(
 				alias, 
-				collectionPersister.getKeyColumnNames(), 
+				collectionPersister.getKeyColumnNames(),
+				collectionPersister.getTenantDiscriminatorColumnName(),
 				subquery,
 				batchSize
 			);

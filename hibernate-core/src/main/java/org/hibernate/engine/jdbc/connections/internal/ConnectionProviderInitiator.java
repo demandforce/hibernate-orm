@@ -26,6 +26,7 @@ package org.hibernate.engine.jdbc.connections.internal;
 import java.beans.BeanInfo;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -42,7 +43,6 @@ import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.beans.BeanInfoHelper;
 import org.hibernate.service.spi.ServiceRegistryImplementor;
-
 import org.jboss.logging.Logger;
 
 /**
@@ -106,8 +106,8 @@ public class ConnectionProviderInitiator implements StandardServiceInitiator<Con
 
 	@Override
 	public ConnectionProvider initiateService(Map configurationValues, ServiceRegistryImplementor registry) {
-		final MultiTenancyStrategy strategy = MultiTenancyStrategy.determineMultiTenancyStrategy(  configurationValues );
-		if ( strategy == MultiTenancyStrategy.DATABASE || strategy == MultiTenancyStrategy.SCHEMA ) {
+		final EnumSet<MultiTenancyStrategy> strategy = MultiTenancyStrategy.determineMultiTenancyStrategy(  configurationValues );
+		if ( MultiTenancyStrategy.requiresMultiTenantConnectionProvider( strategy ) ) {
 			// nothing to do, but given the separate hierarchies have to handle this here.
 			return null;
 		}

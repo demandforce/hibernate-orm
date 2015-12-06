@@ -105,6 +105,11 @@ public class SessionDelegatorBaseImpl implements SessionImplementor, Session {
 	}
 
 	@Override
+	public Serializable getTenantDiscriminator() {
+		return sessionImplementor.getTenantDiscriminator();
+	}
+
+	@Override
 	public JdbcConnectionAccess getJdbcConnectionAccess() {
 		return sessionImplementor.getJdbcConnectionAccess();
 	}
@@ -800,4 +805,5 @@ public class SessionDelegatorBaseImpl implements SessionImplementor, Session {
 	public void addEventListeners(SessionEventListener... listeners) {
 		session.addEventListeners( listeners );
 	}
+
 }

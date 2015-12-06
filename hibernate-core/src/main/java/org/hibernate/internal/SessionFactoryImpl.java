@@ -90,6 +90,7 @@ import org.hibernate.context.internal.ManagedSessionContext;
 import org.hibernate.context.internal.ThreadLocalSessionContext;
 import org.hibernate.context.spi.CurrentSessionContext;
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
+import org.hibernate.context.spi.CurrentTenantResolver;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.function.SQLFunction;
 import org.hibernate.dialect.function.SQLFunctionRegistry;
@@ -112,6 +113,7 @@ import org.hibernate.engine.spi.FilterDefinition;
 import org.hibernate.engine.spi.Mapping;
 import org.hibernate.engine.spi.NamedQueryDefinition;
 import org.hibernate.engine.spi.NamedSQLQueryDefinition;
+import org.hibernate.engine.spi.ResolvedTenant;
 import org.hibernate.engine.spi.SessionBuilderImplementor;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SessionOwner;
@@ -604,14 +606,14 @@ public final class SessionFactoryImpl
 		return new JdbcConnectionAccess() {
 			@Override
 			public Connection obtainConnection() throws SQLException {
-				return settings.getMultiTenancyStrategy() == MultiTenancyStrategy.NONE
+				return !MultiTenancyStrategy.enabled( settings.getMultiTenancyStrategy() )
 						? serviceRegistry.getService( ConnectionProvider.class ).getConnection()
 						: serviceRegistry.getService( MultiTenantConnectionProvider.class ).getAnyConnection();
 			}
 
 			@Override
 			public void releaseConnection(Connection connection) throws SQLException {
-				if ( settings.getMultiTenancyStrategy() == MultiTenancyStrategy.NONE ) {
+				if ( !MultiTenancyStrategy.enabled( settings.getMultiTenancyStrategy() ) ) {
 					serviceRegistry.getService( ConnectionProvider.class ).closeConnection( connection );
 				}
 				else {
@@ -1554,10 +1556,10 @@ public final class SessionFactoryImpl
 		private boolean autoClose;
 		private boolean autoJoinTransactions = true;
 		private boolean flushBeforeCompletion;
-		private String tenantIdentifier;
+		private ResolvedTenant resolvedTenant;
 		private List<SessionEventListener> listeners;
 
-		SessionBuilderImpl(SessionFactoryImpl sessionFactory) {
+		SessionBuilderImpl(final SessionFactoryImpl sessionFactory) {
 			this.sessionFactory = sessionFactory;
 			this.sessionOwner = null;
 			final Settings settings = sessionFactory.settings;
@@ -1569,7 +1571,12 @@ public final class SessionFactoryImpl
 			this.flushBeforeCompletion = settings.isFlushBeforeCompletionEnabled();
 
 			if ( sessionFactory.getCurrentTenantIdentifierResolver() != null ) {
-				tenantIdentifier = sessionFactory.getCurrentTenantIdentifierResolver().resolveCurrentTenantIdentifier();
+				if (sessionFactory.getCurrentTenantIdentifierResolver() instanceof CurrentTenantResolver) {
+					resolvedTenant = ((CurrentTenantResolver)sessionFactory.getCurrentTenantIdentifierResolver()).resolveCurrentTenant();
+				}
+				else {
+					resolvedTenant = new ResolvedTenantIdentifierImpl(sessionFactory.getCurrentTenantIdentifierResolver().resolveCurrentTenantIdentifier());
+				}
 			}
 
 			listeners = settings.getBaselineSessionEventsListenerBuilder().buildBaselineList();
@@ -1585,7 +1592,7 @@ public final class SessionFactoryImpl
 
 		@Override
 		public Session openSession() {
-			log.tracef( "Opening Hibernate Session.  tenant=%s, owner=%s", tenantIdentifier, sessionOwner );
+			log.tracef( "Opening Hibernate Session.  tenant=%s, owner=%s", resolvedTenant, sessionOwner );
 			final SessionImpl session = new SessionImpl(
 					connection,
 					sessionFactory,
@@ -1598,7 +1605,7 @@ public final class SessionFactoryImpl
 					flushBeforeCompletion,
 					autoClose,
 					connectionReleaseMode,
-					tenantIdentifier
+					resolvedTenant
 			);
 
 			for ( SessionEventListener listener : listeners ) {
@@ -1658,7 +1665,15 @@ public final class SessionFactoryImpl
 
 		@Override
 		public SessionBuilder tenantIdentifier(String tenantIdentifier) {
-			this.tenantIdentifier = tenantIdentifier;
+			if (tenantIdentifier != null) {
+				this.resolvedTenant = new ResolvedTenantIdentifierImpl(tenantIdentifier);
+			}
+			return this;
+		}
+
+		@Override
+		public SessionBuilder resolvedTenant(ResolvedTenant resolvedTenant) {
+			this.resolvedTenant = resolvedTenant;
 			return this;
 		}
 
@@ -1678,19 +1693,24 @@ public final class SessionFactoryImpl
 	public static class StatelessSessionBuilderImpl implements StatelessSessionBuilder {
 		private final SessionFactoryImpl sessionFactory;
 		private Connection connection;
-		private String tenantIdentifier;
+		private ResolvedTenant resolvedTenant;
 
 		public StatelessSessionBuilderImpl(SessionFactoryImpl sessionFactory) {
 			this.sessionFactory = sessionFactory;
 
 			if ( sessionFactory.getCurrentTenantIdentifierResolver() != null ) {
-				tenantIdentifier = sessionFactory.getCurrentTenantIdentifierResolver().resolveCurrentTenantIdentifier();
+				if (sessionFactory.getCurrentTenantIdentifierResolver() instanceof CurrentTenantResolver) {
+					resolvedTenant = ((CurrentTenantResolver)sessionFactory.getCurrentTenantIdentifierResolver()).resolveCurrentTenant();
+				}
+				else {
+					resolvedTenant = new ResolvedTenantIdentifierImpl(sessionFactory.getCurrentTenantIdentifierResolver().resolveCurrentTenantIdentifier());
+				}
 			}
 		}
 
 		@Override
 		public StatelessSession openStatelessSession() {
-			return new StatelessSessionImpl( connection, tenantIdentifier, sessionFactory,
+			return new StatelessSessionImpl( connection, resolvedTenant, sessionFactory,
 					sessionFactory.settings.getRegionFactory().nextTimestamp() );
 		}
 
@@ -1702,7 +1722,13 @@ public final class SessionFactoryImpl
 
 		@Override
 		public StatelessSessionBuilder tenantIdentifier(String tenantIdentifier) {
-			this.tenantIdentifier = tenantIdentifier;
+			this.resolvedTenant = new ResolvedTenantIdentifierImpl(tenantIdentifier);
+			return this;
+		}
+
+		@Override
+		public StatelessSessionBuilder resolvedTenant(ResolvedTenant resolvedTenant) {
+			this.resolvedTenant = resolvedTenant;
 			return this;
 		}
 	}
@@ -1809,5 +1835,26 @@ public final class SessionFactoryImpl
 		boolean isNamed = ois.readBoolean();
 		final String name = isNamed ? ois.readUTF() : null;
 		return (SessionFactoryImpl) locateSessionFactoryOnDeserialization( uuid, name );
+	}
+
+	private static class ResolvedTenantIdentifierImpl implements ResolvedTenant {
+		final String tenantIdentfier;
+		ResolvedTenantIdentifierImpl(String tenantIdentfier) {
+			this.tenantIdentfier = tenantIdentfier;
+		}
+		@Override
+		public String getTenantIdentifier() {
+			return tenantIdentfier;
+		}
+
+		@Override
+		public Serializable getTenantDiscriminator() {
+			return null;
+		}
+
+		@Override
+		public String toString() {
+			return "ResolvedTenant[id=" + tenantIdentfier + "]";
+		}
 	}
 }

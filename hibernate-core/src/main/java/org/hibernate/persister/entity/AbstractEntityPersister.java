@@ -79,6 +79,7 @@ import org.hibernate.engine.spi.FilterDefinition;
 import org.hibernate.engine.spi.LoadQueryInfluencers;
 import org.hibernate.engine.spi.Mapping;
 import org.hibernate.engine.spi.PersistenceContext.NaturalIdHelper;
+import org.hibernate.engine.spi.ResolvedTenant;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.engine.spi.ValueInclusion;
@@ -140,7 +141,6 @@ import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
 import org.hibernate.type.TypeHelper;
 import org.hibernate.type.VersionType;
-
 import org.jboss.logging.Logger;
 
 /**
@@ -285,6 +285,9 @@ public abstract class AbstractEntityPersister
 	private final Map subclassPropertyColumnNames = new HashMap();
 
 	protected final BasicEntityPropertyMapping propertyMapping;
+
+	private final String tenantDiscriminatorColumnName;
+	private final Type tenantDiscriminatorType;
 
 	protected void addDiscriminatorToInsert(Insert insert) {}
 
@@ -561,6 +564,9 @@ public abstract class AbstractEntityPersister
 		else {
 			versionColumnName = null;
 		}
+
+		tenantDiscriminatorColumnName = persistentClass.getTenantDiscriminatorColumnName();
+		tenantDiscriminatorType = persistentClass.getTenantDiscriminatorType();
 
 		//WHERE STRING
 
@@ -898,6 +904,10 @@ public abstract class AbstractEntityPersister
 		else {
 			versionColumnName = null;
 		}
+
+		// TODO hbm binding
+		tenantDiscriminatorColumnName = null;
+		tenantDiscriminatorType = null;
 
 		//WHERE STRING
 
@@ -2575,6 +2585,9 @@ public abstract class AbstractEntityPersister
 		else {
 			update.addPrimaryKeyColumns( getKeyColumns( j ) );
 		}
+		if (getTenantDiscriminatorColumnName() != null) {
+			update.addWhereColumn(getTenantDiscriminatorColumnName());
+		}
 
 		boolean hasColumns = false;
 		for ( int i = 0; i < entityMetamodel.getPropertySpan(); i++ ) {
@@ -2797,6 +2810,9 @@ public abstract class AbstractEntityPersister
 		Delete delete = new Delete()
 				.setTableName( getTableName( j ) )
 				.addPrimaryKeyColumns( getKeyColumns( j ) );
+		if (getTenantDiscriminatorColumnName() != null) {
+			delete.addWhereFragment( getTenantDiscriminatorColumnName() + " = ?" );
+		}
 		if ( j == 0 ) {
 			delete.setVersionColumnName( getVersionColumnName() );
 		}
@@ -2861,6 +2877,7 @@ public abstract class AbstractEntityPersister
 		
 		if ( isUpdate ) {
 			index += dehydrateId( id, rowId, ps, session, index );
+			index += dehydrateTenantDiscriminator(ps, session, index);
 		}
 
 		return index;
@@ -2879,6 +2896,19 @@ public abstract class AbstractEntityPersister
 		} else if ( id != null ) {
 			getIdentifierType().nullSafeSet( ps, id, index, session );
 			return getIdentifierColumnSpan();
+		}
+		return 0;
+	}
+
+	private int dehydrateTenantDiscriminator(
+			final PreparedStatement ps,
+			final SessionImplementor session,
+			final int index) throws SQLException {
+		if (getTenantDiscriminatorColumnName() != null && session.getTenantDiscriminator() != null) {
+			getTenantDiscriminatorType().nullSafeSet(ps, session.getTenantDiscriminator(), index, session);
+			return 1;
+		} else if (getTenantDiscriminatorColumnName() != null) {
+			// TODO throw
 		}
 		return 0;
 	}
@@ -3376,6 +3406,7 @@ public abstract class AbstractEntityPersister
 				// the state at the time the delete was issued
 				getIdentifierType().nullSafeSet( delete, id, index, session );
 				index += getIdentifierColumnSpan();
+				index += dehydrateTenantDiscriminator(delete, session, index);
 
 				// We should use the _current_ object state (ie. after any updates that occurred during flush)
 
@@ -5340,6 +5371,14 @@ public abstract class AbstractEntityPersister
 		return attributeDefinitions;
 	}
 
+
+	public String getTenantDiscriminatorColumnName() {
+		return tenantDiscriminatorColumnName;
+	}
+
+	public Type getTenantDiscriminatorType() {
+		return tenantDiscriminatorType;
+	}
 
 	private void prepareEntityIdentifierDefinition() {
 		if ( entityIdentifierDefinition != null ) {

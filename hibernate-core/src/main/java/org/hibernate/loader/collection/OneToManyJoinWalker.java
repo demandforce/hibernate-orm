@@ -100,6 +100,7 @@ public class OneToManyJoinWalker extends CollectionJoinWalker {
 		StringBuilder whereString = whereString(
 				alias,
 				oneToManyPersister.getKeyColumnNames(),
+				oneToManyPersister.getTenantDiscriminatorColumnName(),
 				subquery,
 				batchSize
 			);

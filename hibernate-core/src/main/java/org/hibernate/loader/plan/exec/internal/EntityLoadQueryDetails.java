@@ -163,6 +163,10 @@ public class EntityLoadQueryDetails extends AbstractLoadQueryDetails {
 		);
 	}
 
+	protected void applyRootReturnTenantDiscriminatorRestrictions(SelectStatementBuilder selectStatementBuilder) {
+		this.applyTenantDiscriminatorRestriction(selectStatementBuilder, getRootEntityReturn().getEntityPersister().getTenantDiscriminatorColumnName());
+	}
+
 	@Override
 	protected void applyRootReturnOrderByFragments(SelectStatementBuilder selectStatementBuilder) {
 	}

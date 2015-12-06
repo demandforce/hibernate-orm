@@ -42,6 +42,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.persistence.EntityNotFoundException;
 
 import org.hibernate.AssertionFailure;
@@ -96,6 +97,7 @@ import org.hibernate.engine.spi.EntityKey;
 import org.hibernate.engine.spi.LoadQueryInfluencers;
 import org.hibernate.engine.spi.PersistenceContext;
 import org.hibernate.engine.spi.QueryParameters;
+import org.hibernate.engine.spi.ResolvedTenant;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SessionOwner;
 import org.hibernate.engine.spi.Status;
@@ -156,7 +158,6 @@ import org.hibernate.proxy.LazyInitializer;
 import org.hibernate.stat.SessionStatistics;
 import org.hibernate.stat.internal.SessionStatisticsImpl;
 import org.hibernate.type.Type;
-
 import org.jboss.logging.Logger;
 
 /**
@@ -239,8 +240,8 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 			final boolean flushBeforeCompletionEnabled,
 			final boolean autoCloseSessionEnabled,
 			final ConnectionReleaseMode connectionReleaseMode,
-			final String tenantIdentifier) {
-		super( factory, tenantIdentifier );
+			final ResolvedTenant resolvedTenant) {
+		super( factory, resolvedTenant );
 		this.timestamp = timestamp;
 		this.sessionOwner = sessionOwner;
 		this.interceptor = interceptor == null ? EmptyInterceptor.INSTANCE : interceptor;
